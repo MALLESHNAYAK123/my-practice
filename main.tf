@@ -24,8 +24,7 @@ resource "aws_subnet" "private-sub" {
   count             = length(local.selected_azs)
   vpc_id            = var.vpc_cidr
   availability_zone = local.selected_azs[count.index]
-  cidr_block = cidrsubnet(var.vpc_cidr, 8, count.index
-  + length(local.selected_azs))
+  cidr_block        = cidrsubnet(var.vpc_cidr, 8, count.index + length(local.selected_azs))
   tags = {
     Name = "private-sub-${var.project_name}"
   }
@@ -39,8 +38,6 @@ resource "aws_internet_gateway" "my-igw" {
     Name = "my-igw-${var.project_name}"
   }
 }
-
-#eip
 
 resource "aws_eip" "eip" {
   tags = {

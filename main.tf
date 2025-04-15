@@ -22,7 +22,7 @@ resource "aws_subnet" "public-sub" {
 
 resource "aws_subnet" "private-sub" {
   count             = length(local.selected_azs)
-  vpc_id            =  aws_vpc.vpc01.id
+  vpc_id            = aws_vpc.vpc01.id
   availability_zone = local.selected_azs[count.index]
   cidr_block        = cidrsubnet(var.vpc_cidr, 8, count.index + length(local.selected_azs))
   tags = {
@@ -33,7 +33,7 @@ resource "aws_subnet" "private-sub" {
 #gateways
 
 resource "aws_internet_gateway" "my-igw" {
-  vpc_id =  aws_vpc.vpc01.id
+  vpc_id = aws_vpc.vpc01.id
   tags = {
     Name = "my-igw-${var.project_name}"
   }
@@ -58,6 +58,7 @@ resource "aws_nat_gateway" "nat-gate" {
 resource "aws_route_table" "public-rt" {
   vpc_id = aws_vpc.vpc01.id
   route {
+    gateway_id = aws_internet_gateway.my-igw.id
     cidr_block = "0.0.0.0/0"
   }
   tags = {
@@ -66,7 +67,7 @@ resource "aws_route_table" "public-rt" {
 }
 
 resource "aws_route_table" "private-rt" {
-  vpc_id =  aws_vpc.vpc01.id
+  vpc_id = aws_vpc.vpc01.id
   route {
     nat_gateway_id = aws_nat_gateway.nat-gate.id
     cidr_block     = "0.0.0.0/0"
@@ -88,4 +89,27 @@ resource "aws_route_table_association" "pvt-asso" {
   count          = length(aws_subnet.private-sub)
   subnet_id      = aws_subnet.private-sub[count.index].id
   route_table_id = aws_route_table.private-rt.id
+}
+
+resource "aws_security_group" "my-sg" {
+  description = "security group for my network"
+  vpc_id      = aws_vpc.vpc01.id
+}
+
+resource "aws_security_group_rule" "allow_all_traffic_ipv4_ingress" {
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.my-sg.id
+}
+
+resource "aws_security_group_rule" "allow_all_traffic_ipv4_egress" {
+  type              = "egress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.my-sg.id
 }

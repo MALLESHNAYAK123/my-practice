@@ -89,4 +89,3 @@ resource "aws_route_table_association" "pvt-asso" {
   subnet_id      = aws_subnet.private-sub[count.index].id
   route_table_id = aws_route_table.private-rt.id
 }
-

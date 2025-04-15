@@ -11,7 +11,7 @@ resource "aws_vpc" "vpc01" {
 
 resource "aws_subnet" "public-sub" {
   count                   = length(local.selected_azs)
-  vpc_id                  = var.vpc01.id
+  vpc_id                  = aws_vpc.vpc01.id
   availability_zone       = local.selected_azs[count.index]
   cidr_block              = cidrsubnet(var.vpc_cidr, 8, count.index)
   map_public_ip_on_launch = true
@@ -22,7 +22,7 @@ resource "aws_subnet" "public-sub" {
 
 resource "aws_subnet" "private-sub" {
   count             = length(local.selected_azs)
-  vpc_id            = var.vpc01.id
+  vpc_id            =  aws_vpc.vpc01.id
   availability_zone = local.selected_azs[count.index]
   cidr_block        = cidrsubnet(var.vpc_cidr, 8, count.index + length(local.selected_azs))
   tags = {
@@ -33,7 +33,7 @@ resource "aws_subnet" "private-sub" {
 #gateways
 
 resource "aws_internet_gateway" "my-igw" {
-  vpc_id = var.vpc01.id
+  vpc_id =  aws_vpc.vpc01.id
   tags = {
     Name = "my-igw-${var.project_name}"
   }
@@ -56,7 +56,7 @@ resource "aws_nat_gateway" "nat-gate" {
 #routes
 
 resource "aws_route_table" "public-rt" {
-  vpc_id = var.vpc01.id
+  vpc_id = aws_vpc.vpc01.id
   route {
     cidr_block = "0.0.0.0/0"
   }
@@ -66,7 +66,7 @@ resource "aws_route_table" "public-rt" {
 }
 
 resource "aws_route_table" "private-rt" {
-  vpc_id = var.vpc01.id
+  vpc_id =  aws_vpc.vpc01.id
   route {
     nat_gateway_id = aws_nat_gateway.nat-gate.id
     cidr_block     = "0.0.0.0/0"
